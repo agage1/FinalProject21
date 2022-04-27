@@ -3,6 +3,7 @@ library(knitr)
 
 # import data
 DATA <- read.csv("credit.csv")
+DATA$ï..credit_in_millions <- rev(DATA$ï..credit_in_millions)
 
 # create tsibble
 Year <- as.data.frame(rep(1900:1940,each = 12))
@@ -11,7 +12,7 @@ test <- data.frame(Year,Month)
 names(test) <- c("Year","Month")
 test$Year_Month <- paste(test$Year,test$Month)
 DATA <- tsibble(Time = yearmonth(test$Year_Month),
-             Credit = DATA$�..credit_in_millions,
+             Credit = DATA$�..credit_in_millions,
              index = Time)
 
 # autoplot to see data
