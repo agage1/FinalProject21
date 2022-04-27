@@ -4,7 +4,7 @@ library(knitr)
 # import data
 DATA <- read.csv("credit.csv")
 
-# create into a tsibble
+# create tsibble
 Year <- as.data.frame(rep(1900:1940,each = 12))
 Month <- as.data.frame(rep(month.name,41))
 test <- data.frame(Year,Month)
