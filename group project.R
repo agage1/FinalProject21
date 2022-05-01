@@ -3,7 +3,7 @@ library(knitr)
 
 # import data
 DATA <- read.csv("credit.csv")
-DATA$Ã¯..credit_in_millions <- rev(DATA$Ã¯..credit_in_millions)
+DATA$ï..credit_in_millions <- rev(DATA$ï..credit_in_millions)
 
 
 # create into a tsibble
@@ -13,11 +13,19 @@ test <- data.frame(Year,Month)
 names(test) <- c("Year","Month")
 test$Year_Month <- paste(test$Year,test$Month)
 DATA <- tsibble(Time = yearmonth(test$Year_Month),
-                Credit = DATA$Ã¯..credit_in_millions,
+                Credit = DATA$ï..credit_in_millions,
                 index = Time)
 
 # autoplot to see data
 autoplot(DATA, Credit)
+
+# decomp data
+DATA %>%
+  model(
+    classical_decomposition(Credit, type = "multiplicative")
+  ) %>%
+  components() %>%
+  autoplot()
 
 # See if transforming helps the data
 DATA %>%
@@ -39,9 +47,9 @@ TRAIN %>%
   model(
     "Naive" = NAIVE(Credit),
     "Seasonal Naive" = SNAIVE(Credit),
-    "Mean" = MEAN(Credit),
     "Holts" = ETS(Credit ~ trend()),
-    "Auto" = ARIMA(Credit, stepwise = FALSE)
+    "Auto" = ARIMA(Credit, stepwise = FALSE),
+    "Neural" = NNETAR(Credit)
   ) %>%
   forecast(h = 18) %>%
   accuracy(TRAIN) %>%
@@ -50,7 +58,7 @@ TRAIN %>%
 # fit the model on the entire data set and look at residuals
 TRAIN %>% 
   model(
-    "Holts" = ETS(Credit~trend())
+    "Neural" = NNETAR(Credit)
   ) -> MODEL
 report(MODEL)
 gg_tsresiduals(MODEL)
