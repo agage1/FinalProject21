@@ -12,7 +12,7 @@ test <- data.frame(Year,Month)
 names(test) <- c("Year","Month")
 test$Year_Month <- paste(test$Year,test$Month)
 DATA <- tsibble(Time = yearmonth(test$Year_Month),
-             Credit = DATA$�..credit_in_millions,
+             Credit = DATA$ï..credit_in_millions,
              index = Time)
 
 # autoplot to see data
