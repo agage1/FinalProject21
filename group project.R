@@ -5,15 +5,16 @@ library(knitr)
 DATA <- read.csv("credit.csv")
 DATA$ï..credit_in_millions <- rev(DATA$ï..credit_in_millions)
 
-# create tsibble
+
+# create into a tsibble
 Year <- as.data.frame(rep(1900:1940,each = 12))
 Month <- as.data.frame(rep(month.name,41))
 test <- data.frame(Year,Month)
 names(test) <- c("Year","Month")
 test$Year_Month <- paste(test$Year,test$Month)
 DATA <- tsibble(Time = yearmonth(test$Year_Month),
-             Credit = DATA$ï..credit_in_millions,
-             index = Time)
+                Credit = DATA$ï..credit_in_millions,
+                index = Time)
 
 # autoplot to see data
 autoplot(DATA, Credit)
@@ -28,9 +29,9 @@ DATA %>%
 
 # Train/Holdout Split
 TRAIN <- DATA %>% 
-  filter(Time < yearmonth("1938 June"))
+  filter_index('1900 Jan' ~ '1938 Jun')
 HOLDOUT <- DATA %>% 
-  filter(Time > yearmonth("1938 June"))
+  filter_index( "1938 July"~'1940 Dec')
 
 # Cross validate to find the best model
 TRAIN %>%
@@ -49,7 +50,7 @@ TRAIN %>%
 # fit the model on the entire data set and look at residuals
 TRAIN %>% 
   model(
-    ARIMA(Credit, stepwise = FALSE)
+    "Holts" = ETS(Credit~trend())
   ) -> MODEL
 report(MODEL)
 gg_tsresiduals(MODEL)
@@ -57,7 +58,7 @@ gg_tsresiduals(MODEL)
 # visual the forecast of the best model
 MODEL %>%
   forecast(h = 30) -> fit
-autoplot(DATA,.vars = Credit) + autolayer(fit)
+autoplot(HOLDOUT, .vars = Credit) + autolayer(fit)
 
 # make predictions
 y_pred <- fit$.mean
@@ -72,7 +73,5 @@ mape <- function(y_actual, y_pred) {
 y_actual <- HOLDOUT$Credit
 rmse(y_actual = y_actual, y_pred = y_pred)
 mape(y_actual = y_actual, y_pred = y_pred)
-
-
 
 
