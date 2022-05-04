@@ -35,11 +35,25 @@ DATA %>%
   autoplot(box_cox(Credit, lambda))
 # Does not seem to be helpful
 
+#Model search for entire tsibble
+DATA %>%
+  stretch_tsibble(.init = 120,.step = 60) %>%
+  model(
+    "Naive" = NAIVE(Credit),
+    "Seasonal Naive" = SNAIVE(Credit),
+    "Holts" = ETS(Credit ~ trend()),
+    "Auto" = ARIMA(Credit, stepwise = FALSE),
+    "Neural" = NNETAR(Credit)
+  ) %>%
+  forecast(h = 18) %>%
+  accuracy(DATA) %>%
+  arrange(RMSE)
+
 # Train/Holdout Split
-TRAIN <- DATA %>% 
+TRAIN <- DATA %>%
   filter_index('1900 Jan' ~ '1938 Jun')
-HOLDOUT <- DATA %>% 
-  filter_index( "1938 July"~'1940 Dec')
+HOLDOUT <- DATA %>%
+  filter_index("1938 July" ~ '1940 Dec')
 
 # Cross validate to find the best model
 TRAIN %>%
@@ -52,11 +66,11 @@ TRAIN %>%
     "Neural" = NNETAR(Credit)
   ) %>%
   forecast(h = 18) %>%
-  accuracy(TRAIN) %>%
+  accuracy(DATA) %>%
   arrange(RMSE)
 
 # fit the model on the entire data set and look at residuals
-TRAIN %>% 
+DATA %>% 
   model(
     "Neural" = NNETAR(Credit)
   ) -> MODEL
